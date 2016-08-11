@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta charset="utf-8">
+	<style>
+	body{background-color:#f4f4f4;color:#555;width:80%;padding:20px;font-size:16px;font-weight:200;margin:0 auto;font-family:Helvetica Neue,arial,verdana}h1{color:#708090;text-shadow:0 1px 2px #fff;font-size:4em;text-align:center}.subtitle{text-align:center;margin-bottom:60px}h2{text-shadow:0 1px 2px #fff}h2 span{font-weight:200;font-size:14px}a{color:#a80000}.smaller{font-size:.8em}h4{margin:4px 0;font-weight:400;font-size:20px}textarea{font-family: Arial;border:1px solid lightgrey;outline:none;font-size:14px;width:96%;height:310px;font-size: 20px;padding:10px;text-align:left}.templategroup,.datagroup,.functiongroup,.resultgroup{width:48%;margin:4px 2% 4px 0;float:left;min-width:300px;}.function,.result{background:#DDD;height:312px;font-size: 20px;padding:10px;font-size:14px;overflow-y:auto}.definegroup{display:none}.templategroup.withdefs .definegroup{display:block}.templategroup.withdefs .template{height:90px}textarea.defines{height:60px}.stripgroup{padding-top:8px;width:160px;float:left}code{font-size:14px;font-weight:bold}#sampletabs{list-style:none;margin:0;padding:0}#sampletabs li{float:left;margin:4px;padding:4px 8px;background:#DDD;cursor:pointer}#sampletabs li.active{background:#fa8072;color:#FFF}@media all and (max-width:740px){.templategroup,.datagroup,.functiongroup,.resultgroup{width:100%;margin-right:0}pre{overflow-x:scroll}}
+	</style>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+	<script type="text/javascript" src="../tmpl.js"></script>
+	<title>template</title>
+</head>
+<body style="">
+	<h2>栗子</h2>
+	<div id="samples">
+		<ul id="sampletabs">
+			<li id="simple" class="">simple</li>
+			<li id="if" class="">if</li>
+			<li id="for" class="">for</li>
+		</ul>
+		<div style="clear:both;height:10px"></div>
+		<div class="templategroup">
+			<h4>模版</h4>
+			<textarea autocomplete="off" class="template"></textarea>
+		</div>
+		<div class="functiongroup">
+			<h4>编译后的函数</h4>
+			<div class="function"></div>
+		</div>
+		<div style="clear:both"></div>
+		<div class="datagroup">
+			<h4>数据</h4>
+			<textarea autocomplete="off" class="data"></textarea>
+		</div>
+		<div class="resultgroup">
+			<h4>结果</h4>
+			<div class="result"></div>
+		</div>
+	</div>
+	<script type="text" id="simple-str" data-str='{"name":"杰克"}'><div>Hi <%=name%>!</div></script>
+	<script type="text" id="if-str" data-str='{"a": false}'><%if (a) {%>
+a 
+<%} else {%>
+b
+<%}%></script>
+	<script type="text" id="for-str" data-str='[{"name":"杰克"}, {"name":"螺丝"}]'><% for(var i = 0; i < data.length; i++) { %>
+<div>Hi <%=data[i].name%>!</div>
+<%}%></script>
+	<script type="text/javascript">
+$(function (){
+	$('#sampletabs li').click(function (e) {
+		init(e.target);
+	});
+
+	function init(current) {
+		if (!current) return;
+		var target = $(current),
+			el = $('#' + target[0].id + '-str');
+		location.hash = target[0].id;
+		$('#sampletabs li').removeClass('active');
+		target.addClass('active');
+		$('.template').val(el.html());
+		$('.data').val(el.attr('data-str'));
+
+		fillback();
+	}
+
+	$('.template').keyup(function () {
+		fillback();
+	});
+	$('.data').keyup(function () {
+		fillback();
+	});
+
+	function fillback () {
+		var str, data, compiles, fun, result;
+		try {
+			str = $('.template').val();
+			data = JSON.parse($('.data').val());
+		} catch(e) {}
+		try {
+			compiles = tmpl(str);
+			fun = compiles.toString();
+			$('.function').text(fun);
+		} catch(e){
+			$('.function').html(e);
+			$('.result').html(e);
+		}
+		try {
+			if (compiles && data) {
+				result = compiles(data);
+				$('.result').text(result);
+			}
+		} catch(e){
+			$('.function').html(e);
+			$('.result').html(e);
+		}
+	}
+	var el = $(location.hash || '#simple');
+	if (!el[0] || !location.hash) {
+		location.hash = '#simple';
+		if (!el[0]) {
+			el = $(location.hash);
+		}
+	}
+	init(el);
+});
+	</script>
+</body>
+</html>
